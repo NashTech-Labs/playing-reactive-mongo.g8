@@ -1,0 +1,48 @@
+@(title: String)(content: Html)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>@title</title>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" media="screen" href="@routes.WebJarAssets.at(WebJarAssets.locate("bootswatch-united", "bootstrap.min.css"))">
+		
+		@* Optional theme *@
+		@* <link rel="stylesheet" media="screen" href="@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap", "bootstrap-theme.min.css"))"> *@
+        
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        
+		<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	    <!--[if lt IE 9]>
+	      <script src="@routes.WebJarAssets.at(WebJarAssets.locate("html5shiv.js"))"></script>
+	      <script src="@routes.WebJarAssets.at(WebJarAssets.locate("respond.min.js"))"></script>
+	    <![endif]-->
+		
+    </head>
+    <body>
+    
+    	<!-- Fixed navbar -->
+	    @navbar()
+	    
+        @content
+
+	    <div id="footer">
+	      <div class="container">
+			<p class="text-muted">Play includes a simple data access layer
+				called Anorm that uses plain SQL to interact with the database and
+				provides an API to parse and transform the resulting datasets.</p>
+		</div>
+	    </div>
+        
+        <!-- Bootstrap core JavaScript
+	    ================================================== -->
+	    <!-- Placed at the end of the document so the pages load faster -->
+	    <script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))"></script>
+	    
+	    <!-- Latest compiled and minified JavaScript -->
+		<script src="@routes.WebJarAssets.at(WebJarAssets.locate("bootswatch-united", "bootstrap.min.js"))"></script>
+    </body>
+</html>

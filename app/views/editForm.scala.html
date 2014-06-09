@@ -1,0 +1,37 @@
+@(id: String, employeeForm: Form[Employee])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main("Employee-Self-Service") {
+    
+    <!-- Begin page content -->
+	<div class="container">
+		<div class="page-header">
+			<h1>Edit employee</h1>
+		</div>
+		
+		<div class="row">
+			<div class="col-md-8">
+				@form(routes.Application.update(id)) {
+					<fieldset>
+						@formElements(employeeForm)
+					</fieldset>
+				
+					<div class="actions">
+						<input type="submit" value="Update this employee"	class="btn btn-primary"> or 
+						<a href="@routes.Application.list()" class="btn btn-default">Cancel</a>
+					</div>
+				}
+			</div>
+			<div class="col-md-4">
+				@info()
+			</div>
+		</div>
+		
+		@form(routes.Application.delete(id), 'class -> "topRight") { 
+			<input type="submit" value="Delete this employee" class="btn btn-danger">
+		}
+	</div>
+}
