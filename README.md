@@ -1,6 +1,6 @@
-playing-reactive-mongo
-======================
-Reactive Play 2.3.0 application with [ReactiveMongo](http://reactivemongo.org/) - reactive, asynchronous and non-blocking Scala driver for MongoDB.
+Classic CRUD application in Play Framework 2.3.0 with [ReactiveMongo](http://reactivemongo.org/)
+================================================================================================
+Play 2.3.0 application with [ReactiveMongo](http://reactivemongo.org/) - reactive, asynchronous and non-blocking Scala driver for MongoDB.
 
 This is a classic CRUD application, backed by a MongoDB database. It demonstrates:
 - Achieving, Futures to use more idiomatic error handling.
