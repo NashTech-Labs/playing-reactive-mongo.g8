@@ -16,7 +16,7 @@ This is a classic CRUD application, backed by a MongoDB database. It demonstrate
 * The Github code for the project is at : [playing-reactive-mongo](https://github.com/knoldus/playing-reactive-mongo)
 * Clone the project into local system
 * To run the Play framework 2.3.0, you need JDK 6 or later
-* Install Typesafe Activator if you do not have it already. You can get it from here: http://www.playframework.com/download
+* Install Typesafe Activator if you do not have it already. You can get it from here: [download](http://www.playframework.com/download)
 * Execute `activator clean compile` to build the product
 * Execute `activator run` to execute the product
 * playing-reactive-mongo should now be accessible at localhost:9000
