@@ -40,7 +40,7 @@ if "%ACTIVATOR_HOME%"=="" (
 )
 
 set ERROR_CODE=0
-set APP_VERSION=1.2.1
+set APP_VERSION=1.2.2
 set ACTIVATOR_LAUNCH_JAR=activator-launch-%APP_VERSION%.jar
 
 rem Detect if we were double clicked, although theoretically A user could
@@ -136,11 +136,11 @@ for /f "delims=. tokens=1-3" %%v in ("%JAVA_VERSION%") do (
     set BUILD=%%x
 
     set META_SIZE=-XX:MetaspaceSize=64M -XX:MaxMetaspaceSize=256M
-    if "%MINOR%" LSS "8" (
+    if "!MINOR!" LSS "8" (
       set META_SIZE=-XX:PermSize=64M -XX:MaxPermSize=256M
     )
 
-    set MEM_OPTS=%META_SIZE%
+    set MEM_OPTS=!META_SIZE!
  )
 
 rem We use the value of the JAVA_OPTS environment variable if defined, rather than the config.

@@ -28,4 +28,3 @@ This is a classic CRUD application, backed by a MongoDB database. It demonstrate
 * [Bootstrap 3.1.1](http://getbootstrap.com/css/)
 * [Bootswatch-United](http://bootswatch.com/united/)
 * [WebJars](http://www.webjars.org/)
-
