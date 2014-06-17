@@ -154,7 +154,7 @@ object Application extends Controller with MongoController {
     employeeForm.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(html.createForm(formWithErrors))),
       employee => {
-        val futureUpdateEmp = collection.insert(employee)
+        val futureUpdateEmp = collection.insert(employee.copy(_id = BSONObjectID.generate))
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been created")
         }.recover {
