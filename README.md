@@ -1,4 +1,4 @@
-Classic CRUD application in Play Framework 2.3.0 with [ReactiveMongo](http://reactivemongo.org/)
+Classic CRUD application in Play Framework 2.3.0 with [ReactiveMongo](http://reactivemongo.org/) [![Stack Share](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/anand-singh/playing-reactive-mongo)
 ================================================================================================
 Play 2.3.0 application with [ReactiveMongo](http://reactivemongo.org/) - reactive, asynchronous and non-blocking Scala driver for MongoDB.
 
