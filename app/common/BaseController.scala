@@ -6,7 +6,7 @@ import play.api.mvc.Controller
 import play.modules.reactivemongo.{MongoController, ReactiveMongoApi}
 
 /**
-  * Add comments.
+  * To provide the basic and common utils for sub controller classes.
   *
   * author: gong_baiping
   * date: 11/12/15 7:01 PM

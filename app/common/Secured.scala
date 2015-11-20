@@ -37,7 +37,7 @@ trait Secured {
       .withSession(CurrentURLIdentifier -> request.uri)
 
   /**
-    * Synchronous Authentication by administrator's uuid.
+    * Synchronous Authentication by uuid.
     * @param f
     * @return
     */
@@ -47,7 +47,7 @@ trait Secured {
     }
 
   /**
-    * Synchronous Authentication by administrator's uuid.
+    * Synchronous Authentication by uuid.
     * It is used for posting form data
     * @param f
     * @return
@@ -58,7 +58,7 @@ trait Secured {
     }
 
   /**
-    * Asynchronous Authentication by administrator's uuid.
+    * Asynchronous Authentication by uuid.
     * This is used for get request
     * @param f
     * @return
@@ -75,7 +75,7 @@ trait Secured {
     }
 
   /**
-    * Asynchronous Authentication by administrator's uuid and with specific body parser.
+    * Asynchronous Authentication by uuid and with specific body parser.
     * It is used for posting form data
     * @param f
     * @return

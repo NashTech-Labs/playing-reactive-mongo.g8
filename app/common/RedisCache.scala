@@ -1,12 +1,11 @@
 package common
 
-import org.sedis.Pool
 import play.api.Play._
 import play.api.cache.Cache
 import play.api.libs.Codecs
 
 /**
-  * Add comments.
+  * This is used for caching data into Redis.
   *
   * author: gong_baiping
   * date: 11/20/15 4:41 PM
@@ -34,32 +33,26 @@ trait RedisCache {
   }
 
   /**
-    * Because the underlying Sedis Pool was injected for the cache module to use,
-    * you can just inject the sedis Pool yourself, something like this:
+    * Remove data from the cache by specified key.
+    * @param key
     */
-  lazy val sedisPool = current.injector.instanceOf[Pool]
-
-  /**
-   * Remove data from the cache by specified key.
-   * @param key
-   */
   def removeCached(key: String): Unit = Cache.remove(key)
 
   /**
-   * Save the data to the cache, for the specified number of seconds
-   * The default duration is 10 minutes.
-   * @param key cached key
-   * @param value cached data
-   * @param duration expired duration, default 10 minutes.
-   */
+    * Save the data to the cache, for the specified number of seconds
+    * The default duration is 10 minutes.
+    * @param key cached key
+    * @param value cached data
+    * @param duration expired duration, default 10 minutes.
+    */
   def save2Cache(key: String, value: Any, duration: Int = CacheTime.TenMinutes): Unit =
     Cache.set(key, value, duration)
 
   /**
-   * Get data from the cache by specified key.
-   * @param key cached key
-   * @return cached option value
-   */
+    * Get data from the cache by specified key.
+    * @param key cached key
+    * @return cached option value
+    */
   def getFromCached[T](key: String): Option[T] = Cache.getAs(key)
 
 }
