@@ -1,4 +1,4 @@
-name := """lease-platform"""
+name := """playing-reactive-mongo"""
 
 version := "1.0-SNAPSHOT"
 
