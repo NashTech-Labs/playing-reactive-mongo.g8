@@ -80,6 +80,7 @@ class Application extends BaseController {
     */
   val Home = Redirect(routes.Application.list())
 
+
   /**
     * Display the paginated list of employees.
     *
@@ -88,12 +89,18 @@ class Application extends BaseController {
     * @param filter Filter applied on employee names
     */
   def list(page: Int, orderBy: Int, filter: String) = AsyncAction { implicit request =>
-    // searching by query and pagination
-    search[Employee](Json.obj("name" -> filter), page) map {
-      page =>
-        Logger.debug(s"[List Results]: ${Json.toJson(page)}")
-        Ok(html.list(page, orderBy, filter))
-      //        Ok(Json.toJson(page))
+    val key = CacheKey.key(s"page-$page-orderBy-$orderBy-filter-$filter")
+
+    // get from redis cache
+    getFromCached[PageResults[Employee]](key) match {
+      case Some(pageResult) => Future(Ok(html.list(pageResult, orderBy, filter)))
+      case None =>
+        // searching by query and pagination
+        search[Employee](Json.obj("name" -> filter), page) map {
+          pageResult =>
+            save2Cache(key, pageResult)
+            Ok(html.list(pageResult, orderBy, filter))
+        }
     }
   }
 

@@ -60,6 +60,6 @@ trait RedisCache {
    * @param key cached key
    * @return cached option value
    */
-  def getFromCached[T](key: String): Option[T] = Cache.getAs[T](key)
+  def getFromCached[T](key: String): Option[T] = Cache.getAs(key)
 
 }
