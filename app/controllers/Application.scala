@@ -1,7 +1,6 @@
 package controllers
 
 import java.util.concurrent.TimeoutException
-import javax.inject.Inject
 
 import common.BaseController
 import models.Employee
@@ -12,7 +11,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.Action
-import play.modules.reactivemongo.ReactiveMongoApi
 import play.modules.reactivemongo.json.collection.JSONCollection
 import reactivemongo.bson.BSONObjectID
 import views.html
@@ -89,18 +87,13 @@ class Application extends BaseController {
     * @param orderBy Column to be sorted
     * @param filter Filter applied on employee names
     */
-  def list(page: Int, orderBy: Int, filter: String) = Action.async { implicit request =>
+  def list(page: Int, orderBy: Int, filter: String) = AsyncAction { implicit request =>
     // searching by query and pagination
-    (search[Employee](Json.obj("name" -> filter), page) map {
+    search[Employee](Json.obj("name" -> filter), page) map {
       page =>
-//        implicit val msg = messagesApi.preferred(request)
         Logger.debug(s"[List Results]: ${Json.toJson(page)}")
         Ok(html.list(page, orderBy, filter))
-//        Ok(Json.toJson(page))
-    }).recover {
-      case t: TimeoutException =>
-        Logger.error("Problem found in employee list process")
-        InternalServerError(t.getMessage)
+      //        Ok(Json.toJson(page))
     }
   }
 
@@ -109,15 +102,10 @@ class Application extends BaseController {
     *
     * @param id Id of the employee to edit
     */
-  def edit(id: String) = Action.async { request =>
+  def edit(id: String) = AsyncAction { request =>
     val futureEmp = get[Employee](id)
     futureEmp.map { emps =>
-//      implicit val msg = messagesApi.preferred(request)
       Ok(html.editForm(id, employeeForm.fill(emps.head)))
-    }.recover {
-      case t: TimeoutException =>
-        Logger.error("Problem found in employee edit process")
-        InternalServerError(t.getMessage)
     }
   }
 
@@ -126,20 +114,15 @@ class Application extends BaseController {
     *
     * @param id Id of the employee to edit
     */
-  def update(id: String) = Action.async { implicit request =>
+  def update(id: String) = AsyncAction { implicit request =>
     employeeForm.bindFromRequest.fold(
       { formWithErrors =>
-//        implicit val msg = messagesApi.preferred(request)
         Future.successful(BadRequest(html.editForm(id, formWithErrors)))
       },
       employee => {
         val futureUpdateEmp = saving(employee.copy(_id = BSONObjectID(id)))
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been updated")
-        }.recover {
-          case t: TimeoutException =>
-            Logger.error("Problem found in employee update process")
-            InternalServerError(t.getMessage)
         }
       })
   }
@@ -148,27 +131,21 @@ class Application extends BaseController {
     * Display the 'new employee form'.
     */
   def create = Action { request =>
-//    implicit val msg = messagesApi.preferred(request)
     Ok(html.createForm(employeeForm))
   }
 
   /**
     * Handle the 'new employee form' submission.
     */
-  def save = Action.async { implicit request =>
+  def save = AsyncAction { implicit request =>
     employeeForm.bindFromRequest.fold(
       { formWithErrors =>
-//        implicit val msg = messagesApi.preferred(request)
         Future.successful(BadRequest(html.createForm(formWithErrors)))
       },
       employee => {
         val futureUpdateEmp = saving(employee.copy(_id = BSONObjectID.generate))
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been created")
-        }.recover {
-          case t: TimeoutException =>
-            Logger.error("Problem found in employee update process")
-            InternalServerError(t.getMessage)
         }
       })
   }
@@ -176,7 +153,7 @@ class Application extends BaseController {
   /**
     * Handle employee deletion.
     */
-  def delete(id: String) = Action.async {
+  def delete(id: String) = AsyncAction { request =>
     val futureInt = deleting[Employee](id)
     futureInt.map(i => Home.flashing("success" -> "Employee has been deleted")).recover {
       case t: TimeoutException =>
