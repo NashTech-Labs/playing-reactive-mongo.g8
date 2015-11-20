@@ -72,7 +72,7 @@ trait MongoDao extends ReactiveMongoComponents {
     * @return Future[Seq[T]]
     */
   def findAll[T](implicit reader: Reads[T]): Future[Seq[T]] =
-    collection.genericQueryBuilder.cursor[T]().collect[Seq](10)
+    collection.genericQueryBuilder.cursor[T]().collect[Seq]()
 
   /**
     * To page all documents from mongodb.
