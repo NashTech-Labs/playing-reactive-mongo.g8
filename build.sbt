@@ -1,4 +1,4 @@
-name := """playing-reactive-mongo"""
+name := """lease-platform"""
 
 version := "1.0-SNAPSHOT"
 
@@ -19,6 +19,10 @@ libraryDependencies ++= Seq(
   "org.webjars" % "respond" % "1.4.2"
 )
 
+// http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html
+// When using Play dependency injection for a controller, the injected routes need to be enabled by adding routesGenerator := InjectedRoutesGenerator to your build.
 routesGenerator := InjectedRoutesGenerator
 
+// https://www.playframework.com/documentation/2.4.x/Assets
+// Reverse routing and fingerprinting for public assets
 pipelineStages := Seq(rjs)
