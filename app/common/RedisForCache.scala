@@ -12,7 +12,7 @@ import play.api.libs.Codecs
   * version: 0.1 (Scala 2.11.7, Play 2.4.2)
   * copyright: TonyGong, Inc.
   */
-trait RedisCache {
+trait RedisForCache {
 
   object CacheTime {
     /** caching duration seconds */

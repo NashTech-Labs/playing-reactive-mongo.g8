@@ -95,9 +95,11 @@ class Application extends BaseController {
     getFromCached[PageResults[Employee]](key) match {
       case Some(pageResult) => Future(Ok(html.list(pageResult, orderBy, filter)))
       case None =>
+
         // searching by query and pagination
         search[Employee](Json.obj("name" -> filter), page) map {
           pageResult =>
+
             save2Cache(key, pageResult)
             Ok(html.list(pageResult, orderBy, filter))
         }
@@ -127,7 +129,7 @@ class Application extends BaseController {
         Future.successful(BadRequest(html.editForm(id, formWithErrors)))
       },
       employee => {
-        val futureUpdateEmp = saving(employee.copy(_id = BSONObjectID(id)))
+        val futureUpdateEmp = save(employee.copy(_id = BSONObjectID(id)))
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been updated")
         }
@@ -150,7 +152,7 @@ class Application extends BaseController {
         Future.successful(BadRequest(html.createForm(formWithErrors)))
       },
       employee => {
-        val futureUpdateEmp = saving(employee.copy(_id = BSONObjectID.generate))
+        val futureUpdateEmp = super.save(employee.copy(_id = BSONObjectID.generate))
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been created")
         }
@@ -161,7 +163,7 @@ class Application extends BaseController {
     * Handle employee deletion.
     */
   def delete(id: String) = AsyncAction { request =>
-    val futureInt = deleting[Employee](id)
+    val futureInt = super.delete[Employee](id)
     futureInt.map(i => Home.flashing("success" -> "Employee has been deleted")).recover {
       case t: TimeoutException =>
         Logger.error("Problem deleting employee")

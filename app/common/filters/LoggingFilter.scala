@@ -7,8 +7,13 @@ import play.api.mvc._
 import scala.concurrent.Future
 
 /**
+  * Customizing a filter for printing access info to console and log file.
   * The following is a simple filter that times and logs how long a request takes to execute in Play framework
   * This code is copied from https://www.playframework.com/documentation/2.4.x/ScalaHttpFilters
+  *
+  * {{{
+  *   2015-12-10 16:46:30,941 [INFO] from application - GET /employees took 21ms and returned 200
+  * }}}
   *
   * author: gong_baiping
   * date: 11/20/15 1:18 PM

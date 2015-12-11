@@ -5,7 +5,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc._
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, TimeoutException}
 
 /**
   * This trait is used for authentication.
@@ -66,11 +66,7 @@ trait Secured {
   def IsAuthenticatedAsync(f: => String => Request[AnyContent] => Future[Result]): EssentialAction =
     Security.Authenticated(getUUID, onUnauthorized) { uuid =>
       Action.async { request =>
-        f(uuid)(request).recover {
-          case t: Exception =>
-            Logger.error(s"Problem found in ${request.uri} process\n${t.getMessage}")
-            InternalServerError(t.getMessage)
-        }
+        f(uuid)(request).recover(errorHandler(request.uri))
       }
     }
 
@@ -82,12 +78,8 @@ trait Secured {
     */
   def IsAuthenticatedAsync2[A](bodyParser: BodyParser[A])(f: => String => Request[A] => Future[Result]): EssentialAction =
     Security.Authenticated(getUUID, onUnauthorized) { uuid =>
-      Action.async(bodyParser) { request =>
-        f(uuid)(request).recover {
-          case t: Exception =>
-            Logger.error(s"Problem found in ${request.uri} process\n${t.getMessage}")
-            InternalServerError(t.getMessage)
-        }
+      Action.async(bodyParser) { implicit request =>
+        f(uuid)(request).recover(errorHandler(request.uri))
       }
     }
 
@@ -97,12 +89,23 @@ trait Secured {
     * @return
     */
   def AsyncAction(f: => Request[AnyContent] => Future[Result]): EssentialAction =
-    Action.async { request =>
-      f(request).recover {
-        case t: Exception =>
-          Logger.error(s"Problem found in ${request.uri} process\n${t.getMessage}")
-          InternalServerError(t.getMessage)
-      }
+    Action.async { implicit request =>
+      f(request).recover(errorHandler(request.uri))
     }
+
+  /**
+    * Defining an error handler as partial function taking as input a Throwable and producing a recovered Result
+    * This handler is just used for Future result if the exception is thrown in Future computation
+    * @param uri
+    * @return
+    */
+  def errorHandler(uri: String): PartialFunction[Throwable, Result] = {
+    case te: TimeoutException =>
+      Logger.error(s"Problem found in $uri process.\nThe request is timeout\n${te.getMessage}")
+      InternalServerError(te.getMessage) // TODO: redirect to 500 page
+    case e: Exception =>
+      Logger.error(s"Problem found in $uri process\n${e.getMessage}")
+      InternalServerError(e.getMessage) // TODO: redirect to 500 page
+  }
 
 }

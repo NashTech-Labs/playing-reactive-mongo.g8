@@ -43,7 +43,7 @@ trait MongoDao extends ReactiveMongoComponents {
     * @tparam T, entity type
     * @return Future[WriteResult]
     */
-  def saving[T](entity: T)(implicit writer: Writes[T]): Future[WriteResult] = collection.save(entity)
+  def save[T](entity: T)(implicit writer: Writes[T]): Future[WriteResult] = collection.save(entity)
 
   /**
     * To find one document by id from mongodb
@@ -86,11 +86,11 @@ trait MongoDao extends ReactiveMongoComponents {
       .options(QueryOpts(page * pageSize, pageSize))
       .cursor[T]()
       .collect[Seq](pageSize)
-    val count = counting
+    val totalNumber = this.count
 
     for {
       documents <- futureDocuments
-      totals <- count
+      totals <- totalNumber
     } yield PageResults(documents, page, pageSize, totals)
   }
 
@@ -110,7 +110,7 @@ trait MongoDao extends ReactiveMongoComponents {
         .genericQueryBuilder
         .options(QueryOpts(page * pageSize, pageSize))
         .cursor[T]()
-        .collect[Seq](pageSize), counting)
+        .collect[Seq](pageSize), count)
     } else {
       (collection
         .find(query)
@@ -132,14 +132,14 @@ trait MongoDao extends ReactiveMongoComponents {
     * @tparam T, entity type
     * @return Future[WriteResult]
     */
-  def deleting[T](id: String)(implicit reader: Reads[T]): Future[WriteResult] =
+  def delete[T](id: String)(implicit reader: Reads[T]): Future[WriteResult] =
     collection.remove(Json.obj("_id" -> Json.obj("$oid" -> id)), firstMatchOnly = true)
 
   /**
     * To count the all documents number of the current collection
     * @return Future[Int]
     */
-  def counting: Future[Int] = collection.count()
+  def count: Future[Int] = collection.count()
 
   /**
     * To count the all documents number of the current collection
