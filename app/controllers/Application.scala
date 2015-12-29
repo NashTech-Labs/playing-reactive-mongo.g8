@@ -2,28 +2,21 @@ package controllers
 
 import java.util.concurrent.TimeoutException
 
-import javax.inject.Inject
+import common.BaseController
+import models.Employee
+import play.api.Logger
+import play.api.data.Form
+import play.api.data.Forms.{date, ignored, mapping, nonEmptyText}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.Json
+import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.mvc.Action
+import play.modules.reactivemongo.json.collection.JSONCollection
+import reactivemongo.bson.BSONObjectID
+import views.html
 
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
-
-import play.api.Logger
-import play.api.i18n.MessagesApi
-import play.api.mvc.{ Action, Controller }
-import play.api.data.Form
-import play.api.data.Forms.{ date, ignored, mapping, nonEmptyText }
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.Json, Json.toJsFieldJsValueWrapper
-
-import play.modules.reactivemongo.{
-  MongoController, ReactiveMongoApi, ReactiveMongoComponents
-}
-import play.modules.reactivemongo.json._, collection.JSONCollection
-
-import reactivemongo.bson.BSONObjectID
-
-import models.{ Employee, JsonFormats, Page }, JsonFormats.employeeFormat
-import views.html
 
 /*
  * Example using ReactiveMongo + Play JSON library.
@@ -41,17 +34,16 @@ import views.html
  *
  * Of course, you can still use the default Collection implementation
  * (BSONCollection.) See ReactiveMongo examples to learn how to use it.
+ *
+ * ReactiveMongoApi which is the interface to MongoDB.
  */
-class Application @Inject() (
-  val reactiveMongoApi: ReactiveMongoApi,
-  val messagesApi: MessagesApi)
-    extends Controller with MongoController with ReactiveMongoComponents {
+class Application extends BaseController {
 
   implicit val timeout = 10.seconds
 
   /**
-   * Describe the employee form (used in both edit and create screens).
-   */
+    * Describe the employee form (used in both edit and create screens).
+    */
   val employeeForm = Form(
     mapping(
       "id" -> ignored(BSONObjectID.generate: BSONObjectID),
@@ -73,123 +65,111 @@ class Application @Inject() (
   // ------------------------------------------ //
   // Using case classes + Json Writes and Reads //
   // ------------------------------------------ //
-  import play.api.data.Form
-  import models._
   import models.JsonFormats._
+  import models._
 
   /**
-   * Handle default path requests, redirect to employee list
-   */
-  def index = Action { Home }
+    * Handle default path requests, redirect to employee list
+    */
+  def index = Action {
+    Home
+  }
 
   /**
-   * This result directly redirect to the application home.
-   */
+    * This result directly redirect to the application home.
+    */
   val Home = Redirect(routes.Application.list())
 
+
   /**
-   * Display the paginated list of employees.
-   *
-   * @param page Current page number (starts from 0)
-   * @param orderBy Column to be sorted
-   * @param filter Filter applied on employee names
-   */
-  def list(page: Int, orderBy: Int, filter: String) = Action.async { implicit request =>
-    val futurePage = if (filter.length > 0) {
-      collection.find(Json.obj("name" -> filter)).cursor[Employee]().collect[List]()
-    } else collection.genericQueryBuilder.cursor[Employee]().collect[List]()
+    * Display the paginated list of employees.
+    *
+    * @param page Current page number (starts from 0)
+    * @param orderBy Column to be sorted
+    * @param filter Filter applied on employee names
+    */
+  def list(page: Int, orderBy: Int, filter: String) = AsyncAction { implicit request =>
+    val key = CacheKey.key(s"page-$page-orderBy-$orderBy-filter-$filter")
 
-    futurePage.map({ employees =>
-      implicit val msg = messagesApi.preferred(request)
+    // get from redis cache
+    getFromCached[PageResults[Employee]](key) match {
+      case Some(pageResult) => Future(Ok(html.list(pageResult, orderBy, filter)))
+      case None =>
 
-      Ok(html.list(Page(employees, 0, 10, 20), orderBy, filter))
-    }).recover {
-      case t: TimeoutException =>
-        Logger.error("Problem found in employee list process")
-        InternalServerError(t.getMessage)
+        // searching by query and pagination
+        search[Employee](Json.obj("name" -> filter), page) map {
+          pageResult =>
+
+            save2Cache(key, pageResult)
+            Ok(html.list(pageResult, orderBy, filter))
+        }
     }
   }
 
   /**
-   * Display the 'edit form' of a existing Employee.
-   *
-   * @param id Id of the employee to edit
-   */
-  def edit(id: String) = Action.async { request =>
-    val futureEmp = collection.find(Json.obj("_id" -> Json.obj("$oid" -> id))).cursor[Employee]().collect[List]()
-    futureEmp.map { emps: List[Employee] =>
-      implicit val msg = messagesApi.preferred(request)
-
+    * Display the 'edit form' of a existing Employee.
+    *
+    * @param id Id of the employee to edit
+    */
+  def edit(id: String) = AsyncAction { request =>
+    val futureEmp = get[Employee](id)
+    futureEmp.map { emps =>
       Ok(html.editForm(id, employeeForm.fill(emps.head)))
-    }.recover {
-      case t: TimeoutException =>
-        Logger.error("Problem found in employee edit process")
-        InternalServerError(t.getMessage)
     }
   }
 
   /**
-   * Handle the 'edit form' submission
-   *
-   * @param id Id of the employee to edit
-   */
-  def update(id: String) = Action.async { implicit request =>
+    * Handle the 'edit form' submission
+    *
+    * @param id Id of the employee to edit
+    */
+  def update(id: String) = AsyncAction { implicit request =>
     employeeForm.bindFromRequest.fold(
       { formWithErrors =>
-        implicit val msg = messagesApi.preferred(request)
         Future.successful(BadRequest(html.editForm(id, formWithErrors)))
       },
       employee => {
-        val futureUpdateEmp = collection.update(Json.obj("_id" -> Json.obj("$oid" -> id)), employee.copy(_id = BSONObjectID(id)))
+        val futureUpdateEmp = save(employee.copy(_id = BSONObjectID(id)))
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been updated")
-        }.recover {
-          case t: TimeoutException =>
-            Logger.error("Problem found in employee update process")
-            InternalServerError(t.getMessage)
         }
       })
   }
 
   /**
-   * Display the 'new employee form'.
-   */
+    * Display the 'new employee form'.
+    */
   def create = Action { request =>
-    implicit val msg = messagesApi.preferred(request)
     Ok(html.createForm(employeeForm))
   }
 
   /**
-   * Handle the 'new employee form' submission.
-   */
-  def save = Action.async { implicit request =>
+    * Handle the 'new employee form' submission.
+    */
+  def save = AsyncAction { implicit request =>
     employeeForm.bindFromRequest.fold(
       { formWithErrors =>
-        implicit val msg = messagesApi.preferred(request)
         Future.successful(BadRequest(html.createForm(formWithErrors)))
       },
       employee => {
-        val futureUpdateEmp = collection.insert(employee.copy(_id = BSONObjectID.generate))
+        val futureUpdateEmp = super.save(employee.copy(_id = BSONObjectID.generate))
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been created")
-        }.recover {
-          case t: TimeoutException =>
-            Logger.error("Problem found in employee update process")
-            InternalServerError(t.getMessage)
         }
       })
   }
 
   /**
-   * Handle employee deletion.
-   */
-  def delete(id: String) = Action.async {
-    val futureInt = collection.remove(Json.obj("_id" -> Json.obj("$oid" -> id)), firstMatchOnly = true)
+    * Handle employee deletion.
+    */
+  def delete(id: String) = AsyncAction { request =>
+    val futureInt = super.delete[Employee](id)
     futureInt.map(i => Home.flashing("success" -> "Employee has been deleted")).recover {
       case t: TimeoutException =>
         Logger.error("Problem deleting employee")
         InternalServerError(t.getMessage)
     }
   }
+
 
 }

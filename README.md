@@ -1,14 +1,15 @@
-Classic CRUD application in Play Framework 2.4.x with [ReactiveMongo](http://reactivemongo.org/) [![Stack Share](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/anand-singh/playing-reactive-mongo)
+Topics renewal
 ================================================================================================
-Play 2.4.x application with [ReactiveMongo 0.11.2](http://reactivemongo.org/) - reactive, asynchronous and non-blocking Scala driver for MongoDB.
+Play 2.4.x application with ReactiveMongo 0.11.2 - reactive, asynchronous and non-blocking Scala driver for MongoDB and
+Redis 3.0.5 - a memory database for caching. 
 
-This is a classic CRUD application, backed by a MongoDB database. It demonstrates:
-- Achieving, Futures to use more idiomatic error handling.
-- Accessing a MongoDB database, using [ReactiveMongo 0.11.2](http://reactivemongo.org/).
-- Achieving, table pagination and sorting functionality.
-- Replaced the embedded JS & CSS libraries with [WebJars](http://www.webjars.org/).
-- Play and Scala-based template engine implementation
-- Bootswatch-United with Twitter Bootstrap 3.3.5 to improve the look and feel of the application
+This application includes functions on below list:
+- Customizing a log filter
+- Customizing a global error handler
+- Security authentication for admin system
+- Redis layer for caching
+- MongoDao for MongoDB layer
+- 
 
 -----------------------------------------------------------------------
 ###Instructions :-
