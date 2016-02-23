@@ -18,7 +18,7 @@ import play.api.libs.json.Json, Json.toJsFieldJsValueWrapper
 import play.modules.reactivemongo.{
   MongoController, ReactiveMongoApi, ReactiveMongoComponents
 }
-import play.modules.reactivemongo.json._, collection.JSONCollection
+import reactivemongo.play.json._, collection.JSONCollection
 
 import reactivemongo.bson.BSONObjectID
 
@@ -68,7 +68,8 @@ class Application @Inject() (
    * the collection reference to avoid potential problems in development with
    * Play hot-reloading.
    */
-  def collection: JSONCollection = db.collection[JSONCollection]("employees")
+  def collection: Future[JSONCollection] = connection.database(db.name).
+    map(_.collection[JSONCollection]("employees"))
 
   // ------------------------------------------ //
   // Using case classes + Json Writes and Reads //
@@ -95,11 +96,14 @@ class Application @Inject() (
    * @param filter Filter applied on employee names
    */
   def list(page: Int, orderBy: Int, filter: String) = Action.async { implicit request =>
-    val futurePage = if (filter.length > 0) {
-      collection.find(Json.obj("name" -> filter)).cursor[Employee]().collect[List]()
-    } else collection.genericQueryBuilder.cursor[Employee]().collect[List]()
+    val mongoFilter = {
+      if (filter.length > 0) Json.obj("name" -> filter)
+      else Json.obj()
+    }
+    val filtered = collection.flatMap(
+      _.find(mongoFilter).cursor[Employee]().collect[List]())
 
-    futurePage.map({ employees =>
+    filtered.map({ employees =>
       implicit val msg = messagesApi.preferred(request)
 
       Ok(html.list(Page(employees, 0, 10, 20), orderBy, filter))
@@ -116,7 +120,8 @@ class Application @Inject() (
    * @param id Id of the employee to edit
    */
   def edit(id: String) = Action.async { request =>
-    val futureEmp = collection.find(Json.obj("_id" -> Json.obj("$oid" -> id))).cursor[Employee]().collect[List]()
+    val futureEmp = collection.flatMap(_.find(Json.obj("_id" -> Json.obj("$oid" -> id))).cursor[Employee]().collect[List]())
+
     futureEmp.map { emps: List[Employee] =>
       implicit val msg = messagesApi.preferred(request)
 
@@ -140,7 +145,8 @@ class Application @Inject() (
         Future.successful(BadRequest(html.editForm(id, formWithErrors)))
       },
       employee => {
-        val futureUpdateEmp = collection.update(Json.obj("_id" -> Json.obj("$oid" -> id)), employee.copy(_id = BSONObjectID(id)))
+        val futureUpdateEmp = collection.flatMap(_.update(Json.obj("_id" -> Json.obj("$oid" -> id)), employee.copy(_id = BSONObjectID(id))))
+
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been updated")
         }.recover {
@@ -169,7 +175,8 @@ class Application @Inject() (
         Future.successful(BadRequest(html.createForm(formWithErrors)))
       },
       employee => {
-        val futureUpdateEmp = collection.insert(employee.copy(_id = BSONObjectID.generate))
+        val futureUpdateEmp = collection.flatMap(_.insert(employee.copy(_id = BSONObjectID.generate)))
+
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been created")
         }.recover {
@@ -184,7 +191,8 @@ class Application @Inject() (
    * Handle employee deletion.
    */
   def delete(id: String) = Action.async {
-    val futureInt = collection.remove(Json.obj("_id" -> Json.obj("$oid" -> id)), firstMatchOnly = true)
+    val futureInt = collection.flatMap(_.remove(Json.obj("_id" -> Json.obj("$oid" -> id)), firstMatchOnly = true))
+
     futureInt.map(i => Home.flashing("success" -> "Employee has been deleted")).recover {
       case t: TimeoutException =>
         Logger.error("Problem deleting employee")
