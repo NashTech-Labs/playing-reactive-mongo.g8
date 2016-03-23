@@ -4,7 +4,7 @@ import java.util.concurrent.TimeoutException
 
 import javax.inject.Inject
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.DurationInt
 
 import play.api.Logger
@@ -20,6 +20,7 @@ import play.modules.reactivemongo.{
 }
 import play.modules.reactivemongo.json._, collection.JSONCollection
 
+import reactivemongo.api.QueryOpts
 import reactivemongo.bson.BSONObjectID
 
 import models.{ Employee, JsonFormats, Page }, JsonFormats.employeeFormat
@@ -95,14 +96,17 @@ class Application @Inject() (
    * @param filter Filter applied on employee names
    */
   def list(page: Int, orderBy: Int, filter: String) = Action.async { implicit request =>
-    val futurePage = if (filter.length > 0) {
-      collection.find(Json.obj("name" -> filter)).cursor[Employee]().collect[List]()
-    } else collection.genericQueryBuilder.cursor[Employee]().collect[List]()
 
+    val query = if (filter.length > 0) Json.obj("name" -> filter) else Json.obj()
+    val total = Await.result(collection.count(Some(query)), 30.seconds)
+
+    val pageSize = 20
+    val offset = page * pageSize
+    val futurePage = collection.find(query).options(QueryOpts(skipN = page * pageSize)).cursor[Employee]().collect[List](pageSize)
     futurePage.map({ employees =>
       implicit val msg = messagesApi.preferred(request)
 
-      Ok(html.list(Page(employees, 0, 10, 20), orderBy, filter))
+      Ok(html.list(Page(employees, page, offset, total), orderBy, filter))
     }).recover {
       case t: TimeoutException =>
         Logger.error("Problem found in employee list process")
