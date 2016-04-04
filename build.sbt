@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(cache, ws)
 resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
 libraryDependencies ++= Seq(
-  "org.reactivemongo" %% "play2-reactivemongo" % "0.12.0-SNAPSHOT" changing(),
+  "org.reactivemongo" %% "play2-reactivemongo" % "0.11.11-play24",
   "org.webjars" %% "webjars-play" % "2.4.0",
   "org.webjars" % "bootstrap" % "3.3.5",
   "org.webjars" % "bootswatch-united" % "3.3.4+1",
