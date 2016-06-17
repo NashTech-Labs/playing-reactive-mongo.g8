@@ -26,6 +26,7 @@ import reactivemongo.bson.BSONObjectID
 import models.{ Employee, JsonFormats, Page }, JsonFormats.employeeFormat
 import views.html
 
+import com.typesafe.config.ConfigFactory
 /*
  * Example using ReactiveMongo + Play JSON library.
  *
@@ -49,6 +50,8 @@ class Application @Inject() (
     extends Controller with MongoController with ReactiveMongoComponents {
 
   implicit val timeout = 10.seconds
+
+  lazy val config = ConfigFactory.load()
 
   /**
    * Describe the employee form (used in both edit and create screens).
@@ -108,7 +111,8 @@ class Application @Inject() (
       case 5|(-5) => Json.obj("joiningDate" -> signum(orderBy))
       case _ => Json.obj("designation" -> signum(orderBy))
     }
-    val pageSize = 20
+
+    val pageSize = if (config.hasPath("page.size")) math.max(config.getInt("page.size"), 1) else 20
     val offset = page * pageSize
     val futureTotal = collection.flatMap(_.count(Some(mongoFilter)))
     val filtered = collection.flatMap(
