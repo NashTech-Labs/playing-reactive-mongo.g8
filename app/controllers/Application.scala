@@ -15,6 +15,7 @@ import play.api.data.Form
 import play.api.data.Forms.{ date, ignored, mapping, nonEmptyText }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json, Json.toJsFieldJsValueWrapper
+import play.api.Play.current
 
 import play.modules.reactivemongo.{
   MongoController, ReactiveMongoApi, ReactiveMongoComponents
@@ -26,7 +27,6 @@ import reactivemongo.bson.BSONObjectID
 import models.{ Employee, JsonFormats, Page }, JsonFormats.employeeFormat
 import views.html
 
-import com.typesafe.config.ConfigFactory
 /*
  * Example using ReactiveMongo + Play JSON library.
  *
@@ -51,7 +51,7 @@ class Application @Inject() (
 
   implicit val timeout = 10.seconds
 
-  lazy val config = ConfigFactory.load()
+  lazy val config = current.configuration
 
   /**
    * Describe the employee form (used in both edit and create screens).
@@ -112,7 +112,7 @@ class Application @Inject() (
       case _ => Json.obj("designation" -> signum(orderBy))
     }
 
-    val pageSize = if (config.hasPath("page.size")) math.max(config.getInt("page.size"), 1) else 20
+    val pageSize = config.getInt("page.size").filter(_ > 0).getOrElse(20)
     val offset = page * pageSize
     val futureTotal = collection.flatMap(_.count(Some(mongoFilter)))
     val filtered = collection.flatMap(
