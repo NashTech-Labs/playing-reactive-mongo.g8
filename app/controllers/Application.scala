@@ -72,8 +72,8 @@ class Application @Inject() (
    * the collection reference to avoid potential problems in development with
    * Play hot-reloading.
    */
-  def collection: Future[JSONCollection] = connection.database(db.name).
-    map(_.collection[JSONCollection]("employees"))
+  def collection: Future[JSONCollection] =
+    database.map(_.collection[JSONCollection]("employees"))
 
   // ------------------------------------------ //
   // Using case classes + Json Writes and Reads //
@@ -160,7 +160,10 @@ class Application @Inject() (
         Future.successful(BadRequest(html.editForm(id, formWithErrors)))
       },
       employee => {
-        val futureUpdateEmp = collection.flatMap(_.update(Json.obj("_id" -> Json.obj("$oid" -> id)), employee.copy(_id = BSONObjectID(id))))
+        val futureUpdateEmp = for {
+          oid <- Future.fromTry(BSONObjectID parse id)
+          res <- collection.flatMap(_.update(Json.obj("_id" -> Json.obj("$oid" -> id)), employee.copy(_id = oid)))
+        } yield res
 
         futureUpdateEmp.map { result =>
           Home.flashing("success" -> s"Employee ${employee.name} has been updated")
