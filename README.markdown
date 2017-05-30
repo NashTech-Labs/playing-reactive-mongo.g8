@@ -2,11 +2,11 @@ A [Giter8][g8] template describes a classic CRUD application in Play 2.4.x with 
 
 Classic CRUD application in Play Framework 2.4.x with [ReactiveMongo](http://reactivemongo.org/) [![Stack Share](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](http://stackshare.io/anand-singh/playing-reactive-mongo)
 ================================================================================================
-Play 2.4.x application with [ReactiveMongo 0.11.2](http://reactivemongo.org/) - reactive, asynchronous and non-blocking Scala driver for MongoDB.
+Play 2.4.x application with [ReactiveMongo 0.12.x](http://reactivemongo.org/) - reactive, asynchronous and non-blocking Scala driver for MongoDB.
 
 This is a classic CRUD application, backed by a MongoDB database. It demonstrates:
 - Achieving, Futures to use more idiomatic error handling.
-- Accessing a MongoDB database, using [ReactiveMongo 0.11.2](http://reactivemongo.org/).
+- Accessing a MongoDB database, using [ReactiveMongo 0.12.x](http://reactivemongo.org/).
 - Achieving, table pagination and sorting functionality.
 - Replaced the embedded JS & CSS libraries with [WebJars](http://www.webjars.org/).
 - Play and Scala-based template engine implementation
@@ -27,7 +27,7 @@ This is a classic CRUD application, backed by a MongoDB database. It demonstrate
 ### References :-
 -----------------------------------------------------------------------
 * [Play Framework 2.4.x](http://www.playframework.com/)
-* [ReactiveMongo 0.11.2](http://reactivemongo.org/)
+* [ReactiveMongo 0.12.x](http://reactivemongo.org/)
 * [Bootstrap 3.3.5](http://getbootstrap.com/css/)
 * [Bootswatch-United](http://bootswatch.com/united/)
 * [WebJars](http://www.webjars.org/)
